@@ -1,0 +1,9 @@
+.env
+data/
+logs/
+mysql/
+redis/
+backups/
+*.sql
+*.sql.gz
+

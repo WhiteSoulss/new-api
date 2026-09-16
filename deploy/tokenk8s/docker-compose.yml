@@ -1,0 +1,86 @@
+services:
+  new-api-1:
+    image: calciumion/new-api:v1.0.0-rc.36
+    container_name: new-api-1
+    restart: always
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      - TZ=Asia/Shanghai
+      - SQL_DSN=root:${MYSQL_ROOT_PASSWORD}@tcp(new-api-mysql:3306)/new-api
+      - REDIS_CONN_STRING=redis://new-api-redis:6379
+      - SESSION_SECRET=${SESSION_SECRET}
+      - NODE_NAME=new-api-node-1
+    volumes:
+      - ./data:/data
+      - ./logs/node-1:/app/logs
+    depends_on:
+      new-api-mysql:
+        condition: service_healthy
+      new-api-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/status || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+
+  new-api-2:
+    image: calciumion/new-api:v1.0.0-rc.36
+    container_name: new-api-2
+    restart: always
+    ports:
+      - "127.0.0.1:3002:3000"
+    environment:
+      - TZ=Asia/Shanghai
+      - SQL_DSN=root:${MYSQL_ROOT_PASSWORD}@tcp(new-api-mysql:3306)/new-api
+      - REDIS_CONN_STRING=redis://new-api-redis:6379
+      - SESSION_SECRET=${SESSION_SECRET}
+      - NODE_NAME=new-api-node-2
+      - NODE_TYPE=slave
+    volumes:
+      - ./data:/data
+      - ./logs/node-2:/app/logs
+    depends_on:
+      new-api-mysql:
+        condition: service_healthy
+      new-api-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/status || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    stop_grace_period: 30s
+
+  new-api-mysql:
+    image: mysql:8.0
+    container_name: new-api-mysql
+    restart: always
+    command:
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=new-api
+    volumes:
+      - ./mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  new-api-redis:
+    image: redis:7-alpine
+    container_name: new-api-redis
+    restart: always
+    volumes:
+      - ./redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
