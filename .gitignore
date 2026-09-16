@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+implementation-*.png
+design-comparison-*.png
+live-homepage.png
+design-reference.png
