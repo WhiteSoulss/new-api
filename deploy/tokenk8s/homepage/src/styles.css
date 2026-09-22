@@ -246,12 +246,13 @@ img{display:block;max-width:100%}
 .site-shell.is-embedded{padding-top:64px}
 .language-button{border:0;background:none;color:#c7d8ec;font-size:12px;font-weight:700;white-space:nowrap}
 .language-button:hover{color:#fff}
-.model-grid-overseas{grid-template-columns:repeat(3,minmax(0,1fr))}
+.model-grid-overseas{grid-template-columns:repeat(4,minmax(0,1fr))}
+.model-logo-openai{width:44px;height:44px;margin:-9px}
 .gemini-logo{display:grid;place-items:center;width:26px;height:26px;color:#76b6ff}
 .point-icon{display:flex;align-items:center}
 .code-bottom a,.value-card a{display:inline-flex;align-items:center;gap:5px}
 html[lang=en] .hero h1{font-size:clamp(45px,4.4vw,66px);white-space:normal}
 html[lang=en] .hero-copy{width:min(610px,53%)}
 html[lang=en] .hero-intro{max-width:540px;font-size:15px}
-@media(max-width:900px){.model-grid-overseas{grid-template-columns:repeat(3,minmax(0,1fr))}html[lang=en] .hero-copy{width:min(610px,75%)}}
+@media(max-width:900px){.model-grid-overseas{grid-template-columns:repeat(2,minmax(0,1fr))}html[lang=en] .hero-copy{width:min(610px,75%)}}
 @media(max-width:650px){.model-grid-overseas{grid-template-columns:1fr}html[lang=en] .hero-copy{width:100%}html[lang=en] .hero h1{font-size:clamp(38px,9vw,52px)}html[lang=en] .hero-art{object-position:30% center}}

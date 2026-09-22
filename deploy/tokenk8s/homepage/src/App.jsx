@@ -11,11 +11,11 @@ const copy = {
   en: {
     nav: ['Home', 'Models & pricing', 'Docs', 'About'], signIn: 'Sign in', console: 'Open console',
     heroLine1: 'Every token,', heroLine2: 'limitless potential.',
-    heroIntro: 'Guanqi Intelligence brings leading AI models together behind one API. Connect to GLM, Gemini and Kimi with a familiar interface, then focus on building what comes next.',
+    heroIntro: 'Guanqi Intelligence brings leading AI models together behind one API. Connect to GLM, Gemini, Kimi and OpenAI with a familiar interface, then focus on building what comes next.',
     start: 'Start building', explore: 'Explore models', heroNote: ['More open AI', 'More room to create'],
     points: [['One API', 'Many models, one integration'], ['Usage-based', 'Flexible, transparent pricing'], ['Full visibility', 'Track every request']],
     modelKicker: 'Leading models, one integration', modelTitle1: 'Choose the right model', modelTitle2: 'for your next idea.',
-    modelIntro: 'Move between GLM, Gemini and Kimi without rebuilding your application. Compare capabilities and pricing, and keep one familiar way of calling the API.',
+    modelIntro: 'Move between GLM, Gemini, Kimi and OpenAI without rebuilding your application. Compare capabilities and pricing, and keep one familiar way of calling the API.',
     allModels: 'Explore all models', quickStart: 'QUICK START', codeBottom: 'One endpoint · OpenAI-compatible', viewDocs: 'Read the docs',
     valueTitle: 'Less integration work. More building.', valueIntro: 'From model access to usage tracking, every part of the workflow stays clear and practical.',
     values: [
@@ -39,11 +39,11 @@ const copy = {
   zh: {
     nav: ['首頁', '模型與價格', '開發文檔', '關於我們'], signIn: '登入', console: '進入控制台',
     heroLine1: '每一個 Token，', heroLine2: '連接無限可能。',
-    heroIntro: '冠淇智能將主流 AI 模型匯聚於同一個 API。透過熟悉的介面接入 GLM、Gemini、Kimi，讓你專注創造下一個作品。',
+    heroIntro: '冠淇智能將主流 AI 模型匯聚於同一個 API。透過熟悉的介面接入 GLM、Gemini、Kimi 與 OpenAI，讓你專注創造下一個作品。',
     start: '開始構建', explore: '探索模型', heroNote: ['更開放的 AI', '創造更大的可能'],
     points: [['統一 API', '一個接口接入多種模型'], ['按量計費', '靈活使用，價格透明'], ['用量可查', '每次調用清晰可見']],
     modelKicker: '主流模型，一站接入', modelTitle1: '選擇合適的模型', modelTitle2: '釋放更大的創造力。',
-    modelIntro: '在 GLM、Gemini 與 Kimi 之間靈活切換，無須重寫應用。模型能力與價格清晰可查，調用方式始終一致。',
+    modelIntro: '在 GLM、Gemini、Kimi 與 OpenAI 之間靈活切換，無須重寫應用。模型能力與價格清晰可查，調用方式始終一致。',
     allModels: '探索全部模型', quickStart: '快速開始', codeBottom: '統一接口 · 相容 OpenAI SDK', viewDocs: '查看文檔',
     valueTitle: '複雜留給我們，創造留給你。', valueIntro: '從模型接入到用量管理，每一步都簡單、清晰、可靠。',
     values: [
@@ -70,6 +70,7 @@ const modelFamilies = [
   { name: 'GLM', icon: 'zhipu-color.svg', models: ['glm-5.3', 'glm-5.2'], en: 'Reasoning and multilingual work', zh: '推理與多語言任務' },
   { name: 'Gemini', icon: null, models: ['gemini-3.7-flash', 'gemini-3.1-pro-preview'], en: 'Multimodal and long context', zh: '多模態與長上下文' },
   { name: 'Kimi', icon: 'kimi-color.svg', models: ['kimi-k3'], en: 'Analysis and agent workflows', zh: '分析與智能體工作流' },
+  { name: 'OpenAI', icon: 'openai-blossom-white.svg', models: ['gpt-5.5', 'gpt-5.4'], en: 'Reasoning and coding', zh: '推理與程式開發' },
 ]
 const navLinks = ['/', '/pricing', DOCS_URL, '/about']
 const valueLinks = [DOCS_URL, '/dashboard', '/pricing']
@@ -194,14 +195,14 @@ export function App() {
           <div className='hero-actions'><a className='button button-primary button-large' href='/dashboard' target={top}>{t.start}<Icon icon={ArrowRight01Icon} size={20} /></a><a className='button button-outline button-large' href='#models'>{t.explore}<Icon icon={ArrowRight01Icon} size={20} /></a></div>
           <div className='hero-points' aria-label={language === 'zh' ? '平台優勢' : 'Platform benefits'}>{t.points.map(([title, detail], index) => <div key={title}><span className='point-icon'><Icon icon={pointIcons[index]} size={23} /></span><strong>{title}</strong><small>{detail}</small></div>)}</div>
         </div><div className='hero-annotation hero-annotation-top' aria-hidden='true'>{t.heroNote[0]}<br />{t.heroNote[1]}<span /></div><div className='hero-annotation hero-annotation-bottom' aria-hidden='true'>FROM TOKEN<br />TO TOMORROW<span /></div>
-          <div className='stream-label stream-glm' aria-hidden='true'>GLM <span /></div><div className='stream-label stream-deepseek' aria-hidden='true'>Gemini <span /></div><div className='stream-label stream-kimi' aria-hidden='true'>Kimi <span /></div>
+          <div className='stream-label stream-glm' aria-hidden='true'>GLM <span /></div><div className='stream-label stream-deepseek' aria-hidden='true'>Gemini <span /></div><div className='stream-label stream-kimi' aria-hidden='true'>Kimi <span /></div><div className='stream-label stream-doubao' aria-hidden='true'>OpenAI <span /></div>
         </div>
       </section>
 
       <section className='models-section section' id='models' aria-labelledby='models-title'><div className='container models-layout'>
         <div className='models-copy' data-reveal><p className='section-kicker'>{t.modelKicker}</p><h2 id='models-title'>{t.modelTitle1}<br /><span>{t.modelTitle2}</span></h2><p className='section-intro'>{t.modelIntro}</p><a className='text-link' href='/pricing' target={top}>{t.allModels}<Icon icon={ArrowRight01Icon} /></a></div>
         <div className='model-grid model-grid-overseas' role='tablist' aria-label='Select a model for the code example'>{modelFamilies.map((family) => <div className={`model-card ${family.models.includes(selectedModel) ? 'is-active' : ''}`} key={family.name}>
-          <span className='model-name'>{family.icon ? <img className='model-logo' src={`${BASE}assets/model-icons/${family.icon}`} alt='' /> : <span className='gemini-logo'><Icon icon={AiCloud01Icon} size={25} /></span>}{family.name}</span><small>{family[language]}</small>
+          <span className='model-name'>{family.icon ? <img className={`model-logo ${family.name === 'OpenAI' ? 'model-logo-openai' : ''}`} src={`${BASE}assets/model-icons/${family.icon}`} alt='' /> : <span className='gemini-logo'><Icon icon={AiCloud01Icon} size={25} /></span>}{family.name}</span><small>{family[language]}</small>
           <div className='model-options'>{family.models.map((model) => <button className={`model-option ${selectedModel === model ? 'is-active' : ''}`} type='button' role='tab' aria-selected={selectedModel === model} aria-controls='code-panel' onClick={() => setSelectedModel(model)} key={model}>{model}</button>)}</div>
           <a className='model-more' href='/pricing' target={top} aria-label={`More ${family.name} models`}><Icon icon={ArrowUpRight01Icon} size={16} /></a>
         </div>)}</div>
