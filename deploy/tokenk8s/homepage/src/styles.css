@@ -243,6 +243,7 @@ img{display:block;max-width:100%}
 }
 
 .site-shell{overflow:hidden;background:var(--bg)}
+.site-shell.is-embedded{padding-top:64px}
 .language-button{border:0;background:none;color:#c7d8ec;font-size:12px;font-weight:700;white-space:nowrap}
 .language-button:hover{color:#fff}
 .model-grid-overseas{grid-template-columns:repeat(3,minmax(0,1fr))}
