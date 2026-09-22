@@ -37,8 +37,8 @@ The hero and model cards were also inspected separately at full viewport size. T
 1. Initial desktop pass: [P2] the English heading reached the image labels; shortened the line to “limitless potential.” Final 1280 px capture shows no collision.
 2. Initial mobile pass: [P2] the central dataflow emblem sat behind the English heading; moved its mobile crop right. Final 390 px capture keeps the text clear.
 3. Interaction pass: [P2] copied curl example showed stray `+` characters; rebuilt the command from clean lines. Browser-read text now matches valid curl syntax.
-4. Production integration pass: [P1] New API's fixed native header covered the embedded hero overline because the embedded shell lacked the domestic site's 64 px top offset. Added the offset to `.site-shell.is-embedded`; the follow-up production capture must show the overline below the header.
+4. Production integration pass: [P1] New API's fixed native header covered the embedded hero overline because the embedded shell lacked the domestic site's 64 px top offset. Added the offset to `.site-shell.is-embedded`; the follow-up production capture at `https://tokenk8s.com/` shows the full overline below the native header, the dataflow art loaded, and the next section visible below the fold.
 
-No actionable P0/P1/P2 issue remains in the standalone homepage. The production integration remains blocked until a fresh capture confirms that the embedded hero overline is no longer hidden by the native header.
+No actionable P0/P1/P2 issue remains in the standalone or production homepage. The live DOM also confirms the international API and documentation URLs, the native Guanqi Intelligence header, and the model/code interactions.
 
-final result: blocked
+final result: passed
