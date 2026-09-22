@@ -19,6 +19,12 @@ if [[ -n $(git -C "$repo_root" status --porcelain) ]]; then
   exit 1
 fi
 
+published=$(git -C "$repo_root" ls-remote --exit-code origin refs/heads/tokenk8s-production | awk '{print $1}')
+if [[ "$commit" != "$published" ]]; then
+  echo "Refusing to deploy: push this exact revision to GitHub first." >&2
+  exit 1
+fi
+
 npm --prefix "$homepage_dir" ci
 npm --prefix "$homepage_dir" run build
 npm --prefix "$homepage_dir" run test:sites
@@ -40,4 +46,3 @@ ssh "$deploy_host" "
 curl --fail --silent --show-error "https://tokenk8s.com/guanqi-home-v2/index.html" >/dev/null
 curl --fail --silent --show-error "https://tokenk8s.com/api/status" >/dev/null
 echo "Deployed homepage revision $commit to $deploy_host"
-

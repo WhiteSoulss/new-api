@@ -1,0 +1,6 @@
+-- Apply only after a backup. These are the public brand options for tokenk8s.com.
+-- Do not include credentials, user data, or other options in this file.
+INSERT INTO options (`key`, `value`) VALUES
+  ('SystemName', 'Guanqi Intelligence'),
+  ('Logo', '/guanqi-home-v2/assets/guanqi-mark-dark.png')
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);

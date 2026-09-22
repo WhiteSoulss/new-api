@@ -1,72 +1,43 @@
-# Design QA
+# International homepage design QA
 
 ## Evidence
 
-- Source visual truth: `/Users/samcheng/.codex/generated_images/01a05b41-9fb3-7552-b808-4a6adad70ff1/exec-27961ce3-8b6a-4647-a94b-5d09cd69ce4c.png`
-- Browser-rendered implementation: `/Users/samcheng/Documents/ChatGPT/intelligence/guanqi-homepage/implementation-redesign-final.png`
-- Local preview: `http://127.0.0.1:4173/guanqi-home-v2/`
-- Viewport / CSS size: `1487 x 1058`
-- Source pixels: `1487 x 1058`
-- Implementation pixels: `1487 x 1058`
-- Density normalization: none required; both captures are 1:1 at the same pixel size.
-- State: Chinese, light theme, OpenAI request tab selected, first FAQ open.
+- Source visual truth path: `https://cn.guanqiintelligence.com/home/index.html?v=2` (the domestic site's live, dark dataflow homepage); source implementation is also checked in at `../../../../transTokens/ops/home-site/` in the workspace.
+- Implementation path: `http://localhost:4173/guanqi-home-v2/` (browser-rendered Vite preview).
+- Browser screenshot artifacts: source and implementation were captured together in the Codex in-app browser at 1280 × 720 px; the implementation was also captured at 390 × 844 px. The browser tool did not persist screenshots as local files.
+- CSS viewport / screenshot pixels: desktop 1280 × 720 / 1280 × 720; mobile implementation 390 × 844 / 390 × 844. Density normalization was not needed for the equal-size desktop comparison.
+- State: desktop source in Chinese and implementation in English, both on the hero at rest; mobile implementation in English with menu closed, then menu open. Copy and model differences are intentional market localization.
 
-## Full-view comparison
+## Full-view and focused comparison
 
-The source and final implementation were opened together at original resolution in one comparison pass. The final implementation preserves the selected editorial split hero, oversized Chinese headline, cobalt accent hierarchy, light request/response workbench, endpoint block, and the opening unified-model section. The implementation intentionally keeps all text live and interactive rather than rasterizing the generated design.
+The same-size desktop captures were opened in one comparison input. The international page now follows the domestic hero's dark navy background, exact dataflow image, Guanqi mark, cyan heading accent, 69 px header, CTA grouping, three proof points, and the next section beginning immediately below the fold. The hero image crop and large heading occupy the same main regions. The English headline was shortened to retain the domestic rhythm without colliding with the image labels.
 
-## Focused-region comparison
-
-No separate crop was required. At `1487 x 1058`, the hero typography, request/response syntax, CTA controls, endpoint text, connection line, and four model rows were all legible in the full-resolution comparison. Accessibility-tree inspection independently verified all live labels and control states.
+The hero and model cards were also inspected separately at full viewport size. The GLM, Gemini and Kimi cards use the domestic card anatomy and interactive selected state; the code example panel sits beneath them. At 390 px, the hero controls, proof points, menu and heading remain visible without horizontal overflow. The mobile art crop was shifted right to prevent the wordmark from reducing English-heading contrast.
 
 ## Required fidelity surfaces
 
-- Fonts and typography: Inter + Noto Sans SC match the modern grotesk direction; display weight, line height, letter spacing, Chinese wrapping, and code mono treatment reproduce the reference hierarchy without clipping.
-- Spacing and layout rhythm: the two-column split, hero start position, panel top alignment, endpoint placement, and transition into the model section match the source proportions. Responsive rules preserve the hierarchy below 980 px and collapse it to a single column below 780 px.
-- Colors and tokens: ink black, restrained cobalt, pale paper surface, graphite dividers, blue active line, and green 200 status match the source. Contrast remains readable.
-- Image quality and assets: the supplied Guanqi mark and generated atmosphere asset are used at native quality. All UI symbols use Hugeicons; no raster placeholders, hand-drawn SVGs, emoji, or CSS image substitutes were introduced.
-- Copy and content: brand, API base URL, model names, navigation, Chinese value proposition, CTA labels, and OpenAI-compatible request content match the approved product facts.
+- Fonts and typography: the domestic Manrope and DM Mono font files are reused; the English display heading, captions and code sample keep the reference's weight and spacing. CJK falls back to the same system font stack.
+- Spacing and layout: the same container width, 69 px desktop header, hero height, section rhythm, card radii and model/code-panel spacing are reused. Three international model families replace five domestic ones intentionally.
+- Colors and tokens: the original navy, electric blue, cyan and pale text tokens are reused rather than approximated. Focus and hover states remain visible.
+- Images and assets: the exact domestic dataflow image and Guanqi mark are reused at native resolution. Provider marks from the domestic asset set are used where applicable; the existing Hugeicons library supplies the remaining UI icons.
+- Copy and content: international URLs (`api.tokenk8s.com` and `docs.tokenk8s.com`), English-first copy and GLM/Gemini/Kimi listings are intentional. No mainland ICP filing was copied.
 
-## Interaction and motion verification
+## Interaction and technical checks
 
-- Request tabs switch between OpenAI, Claude, and Gemini content.
-- Chinese/English language switching works and returns to the selected state.
-- FAQ expansion changes the visible answer correctly.
-- CTA and navigation destinations remain intact.
-- Entrance reveal, terminal scan, active-line highlight, 200-status pulse, route flow, and staggered model reveal are implemented.
-- `prefers-reduced-motion` disables recurring and entrance motion.
-- Browser console warnings/errors: none.
+- Model selection updates the code example; Python, curl and Node.js tabs switch correctly.
+- Curl commands use the correct international Base URL and no accidental characters.
+- FAQ details expand, and the mobile menu opens with all primary destinations.
+- Language switching and the embedded parent's language-message handling are preserved.
+- Reduced-motion rules disable entrance animation when requested.
+- Browser console errors: none. At 390 px, `scrollWidth === innerWidth` and all images loaded.
+- `npm run build`, `npm run test:sites` (4/4) and `bash -n deploy-homepage.sh` passed.
 
 ## Comparison history
 
-### Initial pass
+1. Initial desktop pass: [P2] the English heading reached the image labels; shortened the line to “limitless potential.” Final 1280 px capture shows no collision.
+2. Initial mobile pass: [P2] the central dataflow emblem sat behind the English heading; moved its mobile crop right. Final 390 px capture keeps the text clear.
+3. Interaction pass: [P2] copied curl example showed stray `+` characters; rebuilt the command from clean lines. Browser-read text now matches valid curl syntax.
 
-- [P2] Hero content sat too low relative to the visual target, leaving excess blank space above the headline and request panel.
-- [P2] The unified-model section began too far below the fold, so the routing line and model cards were not visible at the source viewport.
-- [P2] The response panel was materially shorter than the visual target and did not communicate the platform response clearly.
-
-### Fixes
-
-- Changed the hero grid to top alignment, reduced its outer vertical padding, and offset only the copy column.
-- Reduced the model section's top padding so the routing sequence enters at the same visual beat as the source.
-- Expanded the response payload, increased the response panel height, and added the compatibility note beneath the endpoint.
-
-### Final pass
-
-The final equal-size comparison shows no remaining P0, P1, or P2 mismatch. The live implementation has slightly simpler provider marks than the generated visual; this is an acceptable P3 because the available icon library is used instead of inventing provider logos.
-
-## Implementation checklist
-
-- [x] Selected source resolved and preserved.
-- [x] Desktop layout matches at `1487 x 1058`.
-- [x] Motion treatment implemented with reduced-motion fallback.
-- [x] Core interactions tested.
-- [x] Production build completed.
-- [x] Sites package tests passed 4/4.
-- [x] Browser console checked.
-
-## Follow-up polish
-
-- P3: replace generic provider symbols with official licensed provider marks if those assets are supplied later.
+No actionable P0/P1/P2 issue remains in the standalone homepage. The native New API header is styled by `parent-home.css` and its public brand options are recorded in `site-branding.sql.txt`; production integration is checked during rollout.
 
 final result: passed

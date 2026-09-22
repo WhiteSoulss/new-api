@@ -1,0 +1,26 @@
+/* Match New API's native header to the dark custom homepage without changing
+   console, pricing, or other application routes. */
+body:has(iframe[src*="/guanqi-home-v2/"]) header {
+  --background: #091522;
+  --foreground: #f5f8ff;
+  --muted-foreground: #b8c7da;
+  --border: #284057;
+  color: #f5f8ff;
+  background: #091522;
+  border-bottom: 1px solid #284057;
+}
+
+body:has(iframe[src*="/guanqi-home-v2/"]) header nav {
+  color: #f5f8ff;
+  background: #091522 !important;
+}
+
+body:has(iframe[src*="/guanqi-home-v2/"]) header nav a,
+body:has(iframe[src*="/guanqi-home-v2/"]) header nav button {
+  color: #d7e4f4;
+}
+
+body:has(iframe[src*="/guanqi-home-v2/"]) header nav a:hover,
+body:has(iframe[src*="/guanqi-home-v2/"]) header nav button:hover {
+  color: #fff;
+}

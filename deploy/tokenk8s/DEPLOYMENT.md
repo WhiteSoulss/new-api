@@ -43,3 +43,15 @@ The deployment script creates a versioned homepage release directory and
 switches the `/var/www/guanqi-home` symlink atomically. The previous release
 remains available for rollback.
 
+## International homepage branding
+
+The international homepage follows the domestic site's dark dataflow design,
+but keeps the `tokenk8s.com` API and docs URLs, English-first copy, and the
+models advertised by this deployment. `homepage/public/assets/parent-home.css`
+styles the native New API header only while the custom homepage iframe is
+present; Nginx injects that stylesheet into HTML responses.
+
+The public `SystemName` and `Logo` options are recorded in `site-branding.sql.txt`.
+Back up the current option rows before applying the SQL, then restart each app
+instance in turn so its in-memory option map reloads. Neither credentials nor
+database backups belong in Git.
