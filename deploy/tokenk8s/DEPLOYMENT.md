@@ -58,16 +58,21 @@ database backups belong in Git.
 
 ## Public IP diagnostic entry
 
-`nginx-ip.conf` adds `http://101.47.18.106/` without changing the domain virtual
-hosts. It serves the existing `/var/www/guanqi-home` release directly, including
+`nginx-ip.conf` adds HTTP and HTTPS routes for `101.47.18.106` without changing
+the domain virtual hosts. It serves the existing `/var/www/guanqi-home` release directly, including
 its local assets, so the initial homepage load does not depend on domain DNS or
 the larger New API dashboard bundle. JavaScript and CSS compression is enabled
-only for this additional entry.
+only for this additional entry. Its HTTPS route uses the existing domain
+certificate, which does **not** cover the IP address and can trigger a browser
+certificate-name warning. This is a routing fallback, not trusted IP-address
+TLS. Do not bypass certificate validation for authenticated or API traffic.
+Cached `/webmail/` redirects on the IP are sent back to the homepage; the mail
+domain remains unchanged.
 
 Only GET and HEAD requests are allowed. The public `/api/status` health endpoint
 does not forward cookies or Authorization headers and does not return session
 cookies. Login, console and other application routes redirect to the existing
-HTTPS domain. The HTTP entry is not an authenticated or relay/API endpoint.
+HTTPS domain. Neither IP protocol is an authenticated or relay/API endpoint.
 Its separate access log excludes query strings and credential headers.
 
 After committing and pushing the exact revision to GitHub, install the tracked
@@ -75,9 +80,12 @@ file as `/etc/nginx/sites-available/tokenk8s-ip` and link it from
 `/etc/nginx/sites-enabled/tokenk8s-ip`. Run `nginx -t` before a graceful reload;
 do not change the existing domain or mail configuration.
 
-Verify the homepage and its JavaScript/CSS with the IP Host header, confirm
+Verify both IP routes and their JavaScript/CSS, confirm
 compression, check `/api/status`, check that login redirects to HTTPS and POST
-requests are rejected, and recheck the domain homepage and API. Roll back by
+requests are rejected, and recheck the domain homepage and API. Check that the
+old IP `/webmail/` path redirects locally to `/`. Report the IP certificate
+limitation explicitly; a diagnostic TLS bypass does not prove trusted HTTPS.
+Roll back by
 unlinking only `/etc/nginx/sites-enabled/tokenk8s-ip` and reloading Nginx after a
 successful syntax check.
 
