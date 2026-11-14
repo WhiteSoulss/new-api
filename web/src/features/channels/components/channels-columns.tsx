@@ -53,14 +53,24 @@ import {
   getCurrencyLabel,
 } from '@/lib/currency'
 import { formatTimestampToDate } from '@/lib/format'
+import { handleServerError } from '@/lib/handle-server-error'
+import {
+  createServerError,
+  translateServerText,
+} from '@/lib/server-error-message'
 import { truncateText } from '@/lib/utils'
 
 import { getCodexUsage, updateChannelBalance } from '../api'
 import {
   CHANNEL_STATUS_CONFIG,
   CHANNEL_TYPE_TASK_PLUGIN,
-  MODEL_FETCHABLE_TYPES,
+  CHANNEL_TYPE_VLLM,
+  CHANNEL_TYPE_SGLANG,
 } from '../constants'
+import {
+  useChannelBalanceQueryable,
+  useChannelModelFetchable,
+} from '../hooks/use-task-plugin-option'
 import {
   formatRelativeTime,
   formatResponseTime,
@@ -79,8 +89,13 @@ import {
   isTagAggregateRow,
   type TagRow,
 } from '../lib'
+import {
+  formatChannelBalanceSummary,
+  getChannelBalanceUsedPercent,
+} from '../lib/channel-balance'
 import { parseUpstreamUpdateMeta } from '../lib/upstream-update-utils'
 import type { Channel } from '../types'
+import { ChannelBalanceDetails } from './channel-balance-details'
 import { ChannelRowActionsLayoutContext } from './channel-row-actions-context'
 import { TaskPluginChannelBadge } from './channel-type-badge'
 import { useChannels } from './channels-provider'
@@ -116,7 +131,8 @@ function parseIonetMeta(otherInfo: string | null | undefined): null | {
  */
 function UpstreamUpdateTags({ channel }: { channel: Channel }) {
   const { upstream, setCurrentRow } = useChannels()
-  if (!MODEL_FETCHABLE_TYPES.has(channel.type)) {
+  const modelFetchable = useChannelModelFetchable(channel)
+  if (!modelFetchable) {
     return null
   }
 
@@ -335,10 +351,17 @@ export function BalanceCell({ channel }: { channel: Channel }) {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const layout = useContext(ChannelRowActionsLayoutContext)
-  const { sensitiveVisible, setCurrentRow } = useChannels()
+  const { sensitiveVisible, setCurrentRow, setOpen } = useChannels()
   const isTagRow = isTagAggregateRow(channel)
   const balance = channel.balance || 0
   const usedQuota = channel.used_quota || 0
+  const balanceQueryable = useChannelBalanceQueryable(channel)
+  const detail = channel.balance_detail
+  const usedPercent = getChannelBalanceUsedPercent(detail?.windows)
+  const ownCurrency =
+    detail?.amount != null &&
+    Boolean(detail.currency?.trim()) &&
+    detail.currency?.trim().toUpperCase() !== 'USD'
   const [isUpdating, setIsUpdating] = useState(false)
   const [rawBalanceResponse, setRawBalanceResponse] = useState<string | null>(
     null
@@ -367,9 +390,6 @@ export function BalanceCell({ channel }: { channel: Channel }) {
       showSymbol: layout !== 'card',
     })
   )
-  const remainingFull = withSuffix(
-    formatCurrencyFromUSD(balance, balanceFormatOptions)
-  )
   const usedDisplay =
     usedFull.length > MAX_INLINE_BALANCE_CHARS
       ? withSuffix(
@@ -380,7 +400,10 @@ export function BalanceCell({ channel }: { channel: Channel }) {
           })
         )
       : usedFull
-  const remainingDisplay =
+  let remainingFull = withSuffix(
+    formatCurrencyFromUSD(balance, balanceFormatOptions)
+  )
+  let remainingDisplay =
     remainingFull.length > MAX_INLINE_BALANCE_CHARS
       ? withSuffix(
           formatCurrencyFromUSD(balance, {
@@ -390,6 +413,28 @@ export function BalanceCell({ channel }: { channel: Channel }) {
           })
         )
       : remainingFull
+  if (!balanceQueryable) {
+    remainingFull = '-'
+    remainingDisplay = '-'
+  } else if (
+    detail?.unlimited ||
+    ownCurrency ||
+    (detail?.amount == null && usedPercent !== null)
+  ) {
+    // The upstream's own currency, an unlimited balance or its limits
+    // replace the USD amount when the upstream reports them.
+    remainingFull = formatChannelBalanceSummary(detail, balance, {
+      ...balanceFormatOptions,
+      locale,
+    })
+    remainingDisplay =
+      remainingFull.length > MAX_INLINE_BALANCE_CHARS
+        ? formatChannelBalanceSummary(detail, balance, {
+            compact: true,
+            locale,
+          })
+        : remainingFull
+  }
   const usedLabel = `${t('Used:')} ${usedFull}`
   const remainingLabel = `${t('Remaining:')} ${remainingFull}`
   const maskedUsedLabel = `${t('Used:')} ${SENSITIVE_MASK}`
@@ -426,8 +471,17 @@ export function BalanceCell({ channel }: { channel: Channel }) {
 
   // Regular channel row: show used and remaining with click to update
   const variant = getBalanceVariant(balance)
+  const isInferenceChannel =
+    channel.type === CHANNEL_TYPE_VLLM || channel.type === CHANNEL_TYPE_SGLANG
+  const inferenceStatusLabel =
+    channel.type === CHANNEL_TYPE_SGLANG ? t('SGLang status') : t('vLLM status')
 
   const handleClickUpdate = async () => {
+    if (isInferenceChannel) {
+      setCurrentRow(channel)
+      setOpen('inference-status')
+      return
+    }
     if (isUpdating) {
       return
     }
@@ -437,14 +491,12 @@ export function BalanceCell({ channel }: { channel: Channel }) {
       try {
         const res = await getCodexUsage(channel.id)
         if (!res.success) {
-          throw new Error(res.message || t('Failed to fetch usage'))
+          throw createServerError(res, t('Failed to fetch usage'))
         }
         setCodexUsageResponse(res)
         setCodexUsageOpen(true)
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : t('Failed to fetch usage')
-        )
+        handleServerError(error, t('Failed to fetch usage'))
       } finally {
         setIsUpdating(false)
       }
@@ -456,11 +508,11 @@ export function BalanceCell({ channel }: { channel: Channel }) {
       if (response.success && response.balance !== undefined) {
         toast.success(
           t('Balance updated: {{balance}}', {
-            balance: formatCurrencyFromUSD(response.balance, {
-              digitsLarge: 2,
-              digitsSmall: 4,
-              abbreviate: false,
-            }),
+            balance: formatChannelBalanceSummary(
+              response.balance_detail,
+              response.balance,
+              { digitsLarge: 2, digitsSmall: 4, abbreviate: false, locale }
+            ),
           })
         )
         void queryClient.invalidateQueries({
@@ -470,12 +522,10 @@ export function BalanceCell({ channel }: { channel: Channel }) {
         setCurrentRow(channel)
         setRawBalanceResponse(response.raw_response)
       } else {
-        toast.error(response.message || t('Failed to update balance'))
+        handleServerError(response, t('Failed to update balance'))
       }
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : t('Failed to update balance')
-      )
+      handleServerError(error, t('Failed to update balance'))
     } finally {
       setIsUpdating(false)
     }
@@ -485,19 +535,43 @@ export function BalanceCell({ channel }: { channel: Channel }) {
     remainingBadgeLabel = t('Updating...')
   } else if (sensitiveVisible && channel.type === 57) {
     remainingBadgeLabel = t('Account Info')
+  } else if (sensitiveVisible && isInferenceChannel) {
+    remainingBadgeLabel = inferenceStatusLabel
   }
   let remainingTooltipLabel = remainingLabel
   if (!sensitiveVisible) {
     remainingTooltipLabel = maskedRemainingLabel
   } else if (channel.type === 57) {
     remainingTooltipLabel = t('Click to view Codex usage')
+  } else if (isInferenceChannel) {
+    remainingTooltipLabel = inferenceStatusLabel
   }
   let remainingBadgeVariant: StatusBadgeProps['variant'] = variant
-  if (channel.type === 57) {
+  if (channel.type === 57 || isInferenceChannel) {
     remainingBadgeVariant = 'info'
-  } else if (isUpdating) {
+  } else if (isUpdating || !balanceQueryable) {
     remainingBadgeVariant = 'neutral'
+  } else if (detail?.unlimited) {
+    remainingBadgeVariant = 'success'
+  } else if (detail?.amount == null && usedPercent !== null) {
+    remainingBadgeVariant = 'success'
+    if (usedPercent >= 70) remainingBadgeVariant = 'warning'
+    if (usedPercent >= 90) remainingBadgeVariant = 'danger'
   }
+  const balanceClickable = !isInferenceChannel && balanceQueryable
+  const remainingBadge = (
+    <StatusBadge
+      label={remainingBadgeLabel}
+      variant={remainingBadgeVariant}
+      icon={sensitiveVisible && detail?.error ? AlertTriangle : undefined}
+      size='sm'
+      copyable={false}
+      showDot={false}
+      className={balanceClickable ? 'cursor-pointer' : 'cursor-help'}
+      onClick={balanceClickable ? handleClickUpdate : undefined}
+    />
+  )
+  const balanceQueryHint = balanceClickable && channel.type !== 57
 
   return (
     <TooltipProvider>
@@ -522,20 +596,30 @@ export function BalanceCell({ channel }: { channel: Channel }) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <StatusBadge
-                label={remainingBadgeLabel}
-                variant={remainingBadgeVariant}
-                size='sm'
-                copyable={false}
-                showDot={false}
-                className='cursor-pointer'
-                onClick={handleClickUpdate}
-              />
+              isInferenceChannel ? (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='h-auto rounded-full p-0'
+                  aria-haspopup='dialog'
+                  onClick={handleClickUpdate}
+                >
+                  {remainingBadge}
+                </Button>
+              ) : (
+                remainingBadge
+              )
             }
           />
-          <TooltipContent>
+          <TooltipContent className='flex-col items-start'>
             <p>{remainingTooltipLabel}</p>
-            {channel.type !== 57 && <p>{t('Click to update balance')}</p>}
+            {sensitiveVisible && balanceQueryHint && (
+              <ChannelBalanceDetails
+                result={detail}
+                updatedTime={channel.balance_updated_time}
+              />
+            )}
+            {balanceQueryHint && <p>{t('Click to update balance')}</p>}
           </TooltipContent>
         </Tooltip>
       </div>
@@ -556,15 +640,11 @@ export function BalanceCell({ channel }: { channel: Channel }) {
           try {
             const res = await getCodexUsage(channel.id)
             if (!res.success) {
-              throw new Error(res.message || t('Failed to fetch usage'))
+              throw createServerError(res, t('Failed to fetch usage'))
             }
             setCodexUsageResponse(res)
           } catch (error) {
-            toast.error(
-              error instanceof Error
-                ? error.message
-                : t('Failed to fetch usage')
-            )
+            handleServerError(error, t('Failed to fetch usage'))
           } finally {
             setIsUpdating(false)
           }
@@ -997,8 +1077,9 @@ export function useChannelsColumns(
                     <TooltipContent side='top' className='max-w-xs'>
                       <div className='space-y-1 text-xs'>
                         {statusReason && (
-                          <div>
-                            {t('Reason:')} {statusReason}
+                          <div className='wrap-anywhere'>
+                            {t('Reason:')}{' '}
+                            {translateServerText(t, statusReason)}
                           </div>
                         )}
                         {statusTime && (
