@@ -1,6 +1,6 @@
 services:
   new-api-1:
-    image: calciumion/new-api:v1.0.0-rc.36
+    image: calciumion/new-api:v1.0.0-rc.51@sha256:d6effcdbc58175494765c0cc5954bdacb2300516eec79ba1a9c61f9b9fae7b49
     container_name: new-api-1
     restart: always
     ports:
@@ -28,7 +28,7 @@ services:
     stop_grace_period: 30s
 
   new-api-2:
-    image: calciumion/new-api:v1.0.0-rc.36
+    image: calciumion/new-api:v1.0.0-rc.51@sha256:d6effcdbc58175494765c0cc5954bdacb2300516eec79ba1a9c61f9b9fae7b49
     container_name: new-api-2
     restart: always
     ports:

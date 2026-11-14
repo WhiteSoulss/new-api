@@ -6,10 +6,10 @@ This directory records the non-secret deployment state currently running on
 ## Production baseline
 
 - Upstream source: `QuantumNous/new-api`
-- Release: `v1.0.0-rc.36`
-- Git revision: `ea7cb0ba4e0f82e2bfa5e55752eb68bdf902f71b`
-- Container digest:
-  `sha256:53ca9103fa06e803577e4557901d63ed4e2aa22c5fee0242172c7e35283ef49c`
+- Release: `v1.0.0-rc.51`
+- Upstream Git revision: `c9c6da2786b6a0912215127e78e28fbc6650c85f`
+- Container manifest digest:
+  `sha256:d6effcdbc58175494765c0cc5954bdacb2300516eec79ba1a9c61f9b9fae7b49`
 - Application instances: `new-api-1` and `new-api-2`
 - Data services: MySQL 8 and Redis 7
 - Reverse proxy: Nginx
@@ -42,6 +42,23 @@ server.
 The deployment script creates a versioned homepage release directory and
 switches the `/var/www/guanqi-home` symlink atomically. The previous release
 remains available for rollback.
+
+## New API service upgrade
+
+The two application services in `docker-compose.yml` share MySQL and Redis.
+When upgrading from rc.36 to rc.51, rehearse startup and migration against an
+isolated MySQL backup and Redis, verify both node roles, and pin the official
+release image by digest. After pushing the production branch to GitHub, stop
+both legacy application containers, take a fresh MySQL backup, and deploy the
+committed Compose file. Start the primary and confirm migration and health
+before starting the secondary. Leave MySQL, Redis, mail, and Nginx running.
+Do not run old and new application versions concurrently on the live database.
+
+Before starting rc.51, set `system_task_setting.retention_days` to `36500` only
+when the option is absent, to preserve previously retained system task history.
+Keep the pre-upgrade database backup and Compose file private on the server.
+Do not restore a database snapshot over newer production data without checking
+the impact. The public homepage and IP virtual hosts are deployed separately.
 
 ## International homepage branding
 
