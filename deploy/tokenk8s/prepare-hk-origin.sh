@@ -38,6 +38,7 @@ rsync -a "$rootfs/opt/new-api/data" "$rootfs/opt/new-api/logs" /opt/new-api/
 rsync -a "$rootfs/opt/mailu/" /opt/mailu/
 rsync -a "$rootfs/etc/letsencrypt/" /etc/letsencrypt/
 rsync -a "$rootfs/var/www/" /var/www/
+chmod 755 /var/www
 install -d -m 755 /var/www/letsencrypt/.well-known/acme-challenge
 
 install -m 644 "$rootfs/etc/nginx/conf.d/new-api-upstream.conf" /etc/nginx/conf.d/new-api-upstream.conf
