@@ -1,0 +1,21 @@
+# Use only with the isolated copy of the production Compose directory.
+# Disable host port publishing and prevent the clone from contacting upstreams.
+services:
+  new-api-1:
+    container_name: tokenk8s-hk-rehearsal-api-1
+    ports: !reset []
+    restart: "no"
+  new-api-2:
+    container_name: tokenk8s-hk-rehearsal-api-2
+    ports: !reset []
+    restart: "no"
+  new-api-mysql:
+    container_name: tokenk8s-hk-rehearsal-mysql
+    restart: "no"
+  new-api-redis:
+    container_name: tokenk8s-hk-rehearsal-redis
+    restart: "no"
+
+networks:
+  default:
+    internal: true
