@@ -1,0 +1,16 @@
+{
+  "operations": [
+    {
+      "path": "max_tokens",
+      "mode": "set",
+      "value": 1024,
+      "logic": "AND",
+      "conditions": [
+        { "path": "is_channel_test", "mode": "full", "value": true },
+        { "path": "original_model", "mode": "full", "value": "kimi-k3.1-pro" },
+        { "path": "request_path", "mode": "full", "value": "/v1/chat/completions" },
+        { "path": "max_tokens", "mode": "full", "value": 16 }
+      ]
+    }
+  ]
+}
