@@ -1,0 +1,28 @@
+-- Standard Kimi K3.1 Pro, Moonshot China, per million tokens:
+-- input CNY 13, output 68, cache hit 1.30, 5m write 13, 1h write 26.
+-- https://www.kimi.com/resources/kimi-k3-1-pro-pricing
+-- New API expressions use USD per million tokens; divide by the site's 7.3.
+-- cc1h applies only when the upstream usage is normalized into the 1h bucket.
+-- Do not enable a channel or change existing model/group pricing here.
+START TRANSACTION;
+SET @model_path = '$."kimi-k3.1-pro"';
+SET @formula = 'tier("standard", p * 1.7808219178082192 + c * 9.315068493150685 + cr * 0.17808219178082192 + cc * 1.7808219178082192 + cc1h * 3.5616438356164384)';
+SET @old_mode = NULL, @old_expr = NULL;
+SELECT value INTO @old_mode FROM options
+WHERE `key` = 'billing_setting.billing_mode' FOR UPDATE;
+SELECT value INTO @old_expr FROM options
+WHERE `key` = 'billing_setting.billing_expr' FOR UPDATE;
+
+-- Both existing maps must be objects without a price for this exact model.
+UPDATE options
+SET value = CASE `key`
+    WHEN 'billing_setting.billing_mode' THEN JSON_INSERT(value, @model_path, 'tiered_expr')
+    WHEN 'billing_setting.billing_expr' THEN JSON_INSERT(value, @model_path, @formula)
+END
+WHERE `key` IN ('billing_setting.billing_mode', 'billing_setting.billing_expr')
+  AND JSON_TYPE(@old_mode) = 'OBJECT'
+  AND JSON_TYPE(@old_expr) = 'OBJECT'
+  AND NOT JSON_CONTAINS_PATH(@old_mode, 'one', @model_path)
+  AND NOT JSON_CONTAINS_PATH(@old_expr, 'one', @model_path);
+SELECT ROW_COUNT() AS updated_option_rows;
+COMMIT;
