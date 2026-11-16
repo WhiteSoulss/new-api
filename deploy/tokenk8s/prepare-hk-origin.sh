@@ -9,7 +9,18 @@ stage=${1:?provide the rehearsal directory}
 rootfs=$stage/rootfs
 umask 077
 
-for path in /opt/new-api /opt/mailu /var/www/guanqi-home /var/www/guanqi-docs /etc/nginx/sites-enabled/tokenk8s; do
+if [[ ${2:-} == --resume-after-copy ]]; then
+  cmp -s "$rootfs/opt/new-api/.env" /opt/new-api/.env
+  cmp -s "$rootfs/opt/new-api/docker-compose.yml" /opt/new-api/docker-compose.yml
+  cmp -s "$rootfs/opt/mailu/docker-compose.yml" /opt/mailu/docker-compose.yml
+  cmp -s "$rootfs/etc/letsencrypt/renewal/tokenk8s.com.conf" /etc/letsencrypt/renewal/tokenk8s.com.conf
+else
+  for path in /opt/new-api /opt/mailu /var/www/guanqi-home /var/www/guanqi-docs; do
+    [[ ! -e $path && ! -L $path ]]
+  done
+  test ! -e /etc/letsencrypt/live/tokenk8s.com
+fi
+for path in /etc/nginx/sites-enabled/tokenk8s /etc/nginx/sites-enabled/tokenk8s-ip; do
   [[ ! -e $path && ! -L $path ]]
 done
 if systemctl is-active --quiet nginx; then
@@ -19,7 +30,6 @@ fi
 test -f "$rootfs/opt/new-api/.env"
 test -f "$rootfs/opt/mailu/docker-compose.yml"
 test -f "$rootfs/etc/letsencrypt/renewal/tokenk8s.com.conf"
-test ! -e /etc/letsencrypt/live/tokenk8s.com
 
 install -d -m 700 /opt/new-api /opt/mailu "$stage/target-defaults"
 install -m 600 "$rootfs/opt/new-api/.env" /opt/new-api/.env
@@ -34,7 +44,7 @@ install -m 644 "$rootfs/etc/nginx/conf.d/new-api-upstream.conf" /etc/nginx/conf.
 install -m 644 "$rootfs/etc/nginx/sites-available/tokenk8s" /etc/nginx/sites-available/tokenk8s
 install -m 644 "$rootfs/etc/nginx/sites-available/mail.tokenk8s.com" /etc/nginx/sites-available/mail.tokenk8s.com
 # Produce the IP vhost from the versioned source configuration.
-sed 's/^    server_name 101\.47\.18\.106;$/    server_name 150.5.134.20;/' +    "$rootfs/etc/nginx/sites-available/tokenk8s-ip" > "$stage/artifacts/nginx-ip-hk.conf"
+sed 's/^    server_name 101\.47\.18\.106;$/    server_name 150.5.134.20;/' "$rootfs/etc/nginx/sites-available/tokenk8s-ip" > "$stage/artifacts/nginx-ip-hk.conf"
 grep -Fq 'server_name 150.5.134.20;' "$stage/artifacts/nginx-ip-hk.conf"
 install -m 644 "$stage/artifacts/nginx-ip-hk.conf" /etc/nginx/sites-available/tokenk8s-ip
 if [[ -L /etc/nginx/sites-enabled/default ]]; then
