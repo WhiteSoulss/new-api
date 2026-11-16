@@ -1,0 +1,7 @@
+services:
+  resolver:
+    volumes:
+      - unbound-state:/etc/unbound
+
+volumes:
+  unbound-state:
