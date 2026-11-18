@@ -2,6 +2,7 @@
 set -euo pipefail
 
 version=1.31.9-1~noble
+script_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 signing_fingerprint=573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62
 repo=/etc/apt/sources.list.d/nginx-mainline.list
 pin=/etc/apt/preferences.d/nginx-mainline
@@ -15,6 +16,7 @@ test "$(dpkg --print-architecture)" = amd64
 test ! -e "$repo"
 test ! -e "$pin"
 test ! -e "$keyring"
+test -r "$script_dir/nginx.logrotate"
 test -z "$(find /etc/nginx/modules-enabled -type l -print -quit)"
 nginx -t
 systemctl is-active --quiet nginx
@@ -87,6 +89,7 @@ if [ -e /etc/nginx/conf.d/default.conf ]; then
     mv /etc/nginx/conf.d/default.conf "$backup/package-default.conf"
 fi
 tar -xpf "$backup/nginx-config.tar" -C /
+install -m 0644 "$script_dir/nginx.logrotate" /etc/logrotate.d/nginx
 sha256sum --check "$backup/config.before.sha256"
 nginx -t
 systemctl daemon-reload
